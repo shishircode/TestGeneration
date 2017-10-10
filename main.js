@@ -40,6 +40,7 @@ function Constraint(properties)
 	this.operator = properties.operator;
 	this.value = properties.value;
 	this.altvalue = properties.altvalue;
+     
 	this.funcName = properties.funcName;
 	// Supported kinds: "fileWithContent","fileExists"
 	// integer, string, phoneNumber
@@ -69,9 +70,26 @@ var mockFileLibrary =
 		{	
   			file1: 'text content',
 		}
+	},
+	pathExistsWithContent:
+	{
+		'path/fileExists':{'rand':''}
+	},
+	noFile:
+	{
+		pathContent:
+		{
+		}
+	},
+	fileWithoutContent:
+	{
+		pathContent:
+		{
+			file1:'',
+		}
 	}
-};
 
+};
 function initalizeParams(constraints)
 {
 	var params = {};
@@ -115,6 +133,10 @@ function generateTestCases()
 		// Handle global constraints...
 		var fileWithContent = _.some(constraints, {kind: 'fileWithContent' });
 		var pathExists      = _.some(constraints, {kind: 'fileExists' });
+                var pathExistsWithContent = _.some(constraints, {kind: 'fileExistsWithContent' });
+                var noFile = _.some(constraints, {kind: 'noFile' });
+                var fileWithoutContent = _.some(constraints, {kind: 'fileWithoutContent' });
+
 
 		fillParams(constraints,params,"value")
 		fillParams(constraints,altparams,"altvalue")
@@ -128,11 +150,16 @@ function generateTestCases()
 		
 		if( pathExists || fileWithContent )
 		{
-			content += generateMockFsTestCases(pathExists,fileWithContent,funcName, args);
+			content += generateMockFsTestCases(pathExists,fileWithContent,pathExistsWithContent,funcName, !noFile, !fileWithoutContent,args);
 			// Bonus...generate constraint variations test cases....
-			content += generateMockFsTestCases(!pathExists,fileWithContent,funcName, args);
-			content += generateMockFsTestCases(pathExists,!fileWithContent,funcName, args);
-			content += generateMockFsTestCases(!pathExists,!fileWithContent,funcName, args);
+                        content += generateMockFsTestCases(pathExists,fileWithContent,pathExistsWithContent,funcName,noFile, !fileWithoutContent, args);
+			content += generateMockFsTestCases(pathExists,!fileWithContent,pathExistsWithContent,funcName,!noFile, fileWithoutContent, args);
+    			content += generateMockFsTestCases(pathExists,fileWithContent,pathExistsWithContent,funcName, !noFile, fileWithoutContent,args);
+			content += generateMockFsTestCases(pathExists,fileWithContent,!pathExistsWithContent,funcName, !noFile, !fileWithoutContent,args);
+			content += generateMockFsTestCases(!pathExists,fileWithContent,!pathExistsWithContent,funcName, !noFile, !fileWithoutContent,args);
+			content += generateMockFsTestCases(pathExists,!fileWithContent,pathExistsWithContent,funcName, !noFile, !fileWithoutContent,args);
+			content += generateMockFsTestCases(pathExists,!fileWithContent,!pathExistsWithContent,funcName, !noFile, !fileWithoutContent,args);
+			content += generateMockFsTestCases(!pathExists,!fileWithContent,!pathExistsWithContent,funcName, !noFile, !fileWithoutContent,args);
 		}
 		else
 		{
@@ -150,7 +177,7 @@ function generateTestCases()
 
 }
 
-function generateMockFsTestCases (pathExists,fileWithContent,funcName,args) 
+function generateMockFsTestCases (pathExists,fileWithContent,pathExistsWithContent,funcName,noFile,fileWithoutContent,args) 
 {
 	var testCase = "";
 	// Build mock file system based on constraints.
@@ -158,7 +185,21 @@ function generateMockFsTestCases (pathExists,fileWithContent,funcName,args)
 	if( pathExists )
 	{
 		for (var attrname in mockFileLibrary.pathExists) { mergedFS[attrname] = mockFileLibrary.pathExists[attrname]; }
+                if( pathExistsWithContent )
+                {
+ 			for (var attrname in mockFileLibrary.pathExistsWithContent) { mergedFS[attrname] = mockFileLibrary.pathExistsWithContent[attrname];}
+		}
+
 	}
+	if( noFile)
+        {
+                for (var attrname in mockFileLibrary.noFile) { mergedFS[attrname] = mockFileLibrary.noFile[attrname];}
+        }
+        if( fileWithoutContent)
+        {
+                for (var attrname in mockFileLibrary.fileWithoutContent) { mergedFS[attrname] = mockFileLibrary.fileWithoutContent[attrname];}
+        }
+
 	if( fileWithContent )
 	{
 		for (var attrname in mockFileLibrary.fileWithContent) { mergedFS[attrname] = mockFileLibrary.fileWithContent[attrname]; }
@@ -245,7 +286,18 @@ function constraints(filePath)
 					for( var p =0; p < params.length; p++ )
 					{
 						if( child.arguments[0].name == params[p] )
-						{
+						{       
+   							functionConstraints[funcName].constraints.push(
+                                                        new Constraint(
+                                                        {
+                                                                ident: params[p],
+                                                                value:  "'pathContent/file1'",
+                                                                funcName: funcName,
+                                                                kind: "noFile",
+                                                                operator : child.operator,
+                                                                expression: expression
+                                                        }));
+
 							functionConstraints[funcName].constraints.push( 
 							new Constraint(
 							{
@@ -256,6 +308,17 @@ function constraints(filePath)
 								operator : child.operator,
 								expression: expression
 							}));
+
+							functionConstraints[funcName].constraints.push(
+                                                        new Constraint(
+                                                        {
+                                                                ident: params[p],
+                                                                value:  "'pathContent/file1'",
+                                                                funcName: funcName,
+                                                                kind: "fileWithoutContent",
+                                                                operator : child.operator,
+                                                                expression: expression
+                                                        }));
 						}
 					}
 				}
@@ -279,6 +342,19 @@ function constraints(filePath)
 								operator : child.operator,
 								expression: expression
 							}));
+
+							functionConstraints[funcName].constraints.push(
+                                                        new Constraint(
+                                                        {
+                                                                ident: params[p],
+                                                                // A fake path to a file
+                                                                value:  "'path/fileExists'",
+                                                                funcName: funcName,
+                                                                kind: "fileExistsWithContent",
+                                                                operator : child.operator,
+                                                                expression: expression
+                                                        }));
+
 						}
 					}
 				}
