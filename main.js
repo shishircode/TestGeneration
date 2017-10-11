@@ -40,7 +40,7 @@ function Constraint(properties)
 	this.operator = properties.operator;
 	this.value = properties.value;
 	this.altvalue = properties.altvalue;
-     
+        this.params3 = properties.params3; 
 	this.funcName = properties.funcName;
 	// Supported kinds: "fileWithContent","fileExists"
 	// integer, string, phoneNumber
@@ -125,7 +125,7 @@ function generateTestCases()
 
 		var params = initalizeParams(functionConstraints[funcName])
 		var altparams = initalizeParams(functionConstraints[funcName])
-		
+		var params3 = initalizeParams(functionConstraints[funcName])
 		//console.log( params );
 
 		// update parameter values based on known constraints.
@@ -140,13 +140,14 @@ function generateTestCases()
 
 		fillParams(constraints,params,"value")
 		fillParams(constraints,altparams,"altvalue")
-		
+		fillParams(constraints, params3, "params3")
 		//console.log("ALT",altparams)
 		//console.log("P",params)
 
 		// Prepare function arguments.
 		var args = Object.keys(params).map( function(k) {return params[k]; }).join(",");
 		var altargs = Object.keys(altparams).map( function(k) {return altparams[k]; }).join(",");
+                var params3 = Object.keys(params3).map( function(k) {return params3[k]; }).join(",");
 		
 		if( pathExists || fileWithContent )
 		{
@@ -168,6 +169,7 @@ function generateTestCases()
 			// Emit simple test case.
 			content += "subject.{0}({1});\n".format(funcName, args );
 			content += "subject.{0}({1});\n".format(funcName, altargs );
+			content += "subject.{0}({1});\n".format(funcName, params3 );
 		}
 
 	}
@@ -249,6 +251,7 @@ function constraints(filePath)
 								ident: child.left.name,
 								value: rightHand,
 								altvalue: !rightHand,
+								params3: rightHand,
 								funcName: funcName,
 								kind: "integer",
 								operator : child.operator,
@@ -271,6 +274,7 @@ function constraints(filePath)
 								ident: child.left.name,
 								value: parseInt(rightHand) - 1,
 								altvalue: parseInt(rightHand) +1,
+								params3: parseInt(rightHand)+1, 
 								funcName: funcName,
 								kind: "integer",
 								operator : child.operator,
@@ -278,6 +282,29 @@ function constraints(filePath)
 							}));
 					}
 				}
+				if( child.type === 'BinaryExpression' && child.operator == ">" )
+                                {
+                                        if( child.left.type == 'Identifier' && params.indexOf( child.left.name ) > -1)
+                                        {
+                                                // get expression from original source code:
+                                                var expression = buf.substring(child.range[0], child.range[1]);
+                                                var rightHand = buf.substring(child.right.range[0], child.right.range[1])
+
+                                                functionConstraints[funcName].constraints.push(
+                                                        new Constraint(
+                                                        {
+                                                                ident: child.left.name,
+                                                                value: parseInt(rightHand) + 1,
+                                                                altvalue: parseInt(rightHand) -1,
+								params3: parseInt(rightHand) +1,
+                                                                funcName: funcName,
+                                                                kind: "integer",
+                                                                operator : child.operator,
+                                                                expression: expression
+                                                        }));
+                                        }
+                                }
+
 
 				if( child.type == "CallExpression" && 
 					 child.callee.property &&
