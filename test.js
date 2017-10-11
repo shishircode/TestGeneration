@@ -1,17 +1,17 @@
 var subject = require('./subject.js')
 var mock = require('mock-fs');
 subject.inc(-1,false);
-subject.inc(1,undefined);
-subject.inc(1,undefined);
+subject.inc(-1,undefined);
+subject.inc(1,'');
 subject.inc(-1,undefined);
 subject.inc(-1,'');
-subject.inc(-1,'');
-subject.weird(8,-1,41,"strict");
-subject.weird(6,1,43,false);
-subject.weird(6,1,43,"strict");
-subject.weird(6,-1,41,'rand');
-subject.weird(6,-1,41,"werw");
-subject.weird(6,-1,41,"strict");
+subject.inc(1,'');
+subject.weird(2,1,410,"nksnlfv");
+subject.weird(0,1,410,"raju");
+subject.weird(0,3,412,'');
+subject.weird(0,1,410,'rand');
+subject.weird(0,1,410,"lkkkk");
+subject.weird(0,3,412,"nksnlfv");
 mock({"path/fileExists":{"rand":""},"pathContent":{"file1":"text content"}});
 	subject.fileTest('path/fileExists','pathContent/file1');
 mock.restore();

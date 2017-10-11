@@ -11,24 +11,24 @@ function inc(p, q){
 
 function weird(x,y,z, mode)
 {
-    if( x > 1 && y < 2 )
+    if( x > 7 && y < 0 )
     {
         z = 33;
     }    
-    else if( z < 411 )
+    else if( z < 42 )
     {
-        if( mode == "raju" )
+        if( mode == "strict" )
         {
             return 0;
         }
-        else if( mode.indexOf("lkkkk") == 0 )
+        else if( mode.indexOf("werw") == 0 )
         {
             return 1;
         }
     }
     else
     {
-        if( mode != "nksnlfv" )
+        if( mode != "strict" )
         {
             return y = z / x;
         }
