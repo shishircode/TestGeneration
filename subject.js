@@ -89,7 +89,7 @@ function blackListNumber(phoneNumber)
 {
 	var num = format(phoneNumber, "(NNN) NNN-NNNN");
 	var area = num.substring(1,4);
-	if( area == "212" )
+	if( area != "412" )
 	{
 		return true;
 	}
